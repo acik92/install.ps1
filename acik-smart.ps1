@@ -41,11 +41,6 @@ foreach ($app in $apps) {
     }
 }
 
-# --- Loop installer .exe ---
-foreach ($app in $apps) {
-    # download & install .exe
-}
-
 # --- Loop Microsoft Store / Winget Apps ---
 $storeApps = @(
     @{name="YouTube"; id="Google.YouTube"},
