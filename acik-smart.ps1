@@ -15,10 +15,7 @@ $apps = @(
     @{name="Mozilla Firefox"; process="firefox"; url="https://download.mozilla.org/?product=firefox-latest&os=win64&lang=en-US"; args="/S"},
     @{name="VLC Media Player"; process="vlc"; url="https://mirror-hk.koddos.net/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe"; args="/S"},
     @{name="TeamViewer"; process="TeamViewer"; url="https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe"; args="/S"},
-    @{name="WinRAR"; process="winrar"; url="https://www.rarlab.com/rar/winrar-x64-701.exe"; args="/S"},
-    @{name="Adobe Acrobat Reader"; process="AcroRd32"; url="https://get.adobe.com/reader/download?os=Windows+10&name=Reader+2025.001.20844+English+for+Windows+%28Recommended%29&lang=en&nativeOs=Windows+10&accepted=&declined=mss%2Ccr%2Chrm&preInstalled=&site=otherversions"; args="/sAll /rs /rps /msi EULA_ACCEPT=YES ENABLE_CHROMEEXT=0"},
-    @{name="WhatsApp"; process="WhatsApp"; url="https://get.microsoft.com/installer/download/9NKSQGP7F2NH?cid=website_cta_psi"; args="/S"},
-    @{name="Telegram"; process="Telegram"; url="https://td.telegram.org/tx64/tsetup-x64.6.2.4.exe"; args="/S"}
+    @{name="WinRAR"; process="winrar"; url="https://www.rarlab.com/rar/winrar-x64-701.exe"; args="/S"}
 )
 
 # Semak dan pasang
@@ -44,21 +41,54 @@ foreach ($app in $apps) {
     }
 }
 
+# --- Loop installer .exe ---
+foreach ($app in $apps) {
+    # download & install .exe
+}
+
+# --- Loop Microsoft Store / Winget Apps ---
+$storeApps = @(
+    @{name="YouTube"; id="Google.YouTube"},
+    @{name="WhatsApp"; id="9WZDNCRFJ03T"},
+    @{name="Telegram"; id="8WZDNCRFHVJL"},
+    @{name="Adobe Acrobat Reader"; id="Adobe.Acrobat.Reader.64-bit"}
+)
+
+foreach ($app in $storeApps) {
+    Write-Host "`n⬇️ Memasang $($app.name) dari Store..." -ForegroundColor Cyan
+    try {
+        winget install --id $app.id -e --silent --accept-package-agreements --accept-source-agreements
+        Write-Host "✅ $($app.name) telah dipasang." -ForegroundColor Green
+    } catch {
+        Write-Host "❌ Gagal memasang $($app.name) dari Store." -ForegroundColor Red
+    }
+}
+
 # Padam semua installer
 Write-Host "`n🧹 Memadam fail pemasangan sementara..." -ForegroundColor Cyan
 Remove-Item -Path $dl -Recurse -Force -ErrorAction SilentlyContinue
 
-# Buat shortcut web di Desktop
+# Path Chrome
+$chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+
+# Desktop folder
 $desktop = [Environment]::GetFolderPath("Desktop")
-$shortcuts = @{
+
+# Senarai web yang nak dibuat shortcut
+$apps = @{
     "YouTube"   = "https://www.youtube.com"
     "Instagram" = "https://www.instagram.com"
     "Facebook"  = "https://www.facebook.com"
 }
+
+# Buat shortcut
 $ws = New-Object -ComObject WScript.Shell
-foreach ($name in $shortcuts.Keys) {
-    $sc = $ws.CreateShortcut("$desktop\$name.url")
-    $sc.TargetPath = $shortcuts[$name]
+foreach ($name in $apps.Keys) {
+    $sc = $ws.CreateShortcut("$desktop\$name.lnk")
+    $sc.TargetPath = $chromePath
+    # --app=<URL> buka web dalam window Chrome tersendiri
+    $sc.Arguments = "--app=$($apps[$name])"
+    $sc.WorkingDirectory = [System.IO.Path]::GetDirectoryName($chromePath)
     $sc.Save()
 }
 
