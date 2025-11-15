@@ -1,5 +1,7 @@
 # ================================================
 # 🧩 Smart Installer Menu + Office 365 + Office Home 2024
+# PowerShell 7+ compatible
+# Progress sebenar untuk download
 # ================================================
 
 $dl = "$env:TEMP\installers"
@@ -14,11 +16,45 @@ $apps = @(
     @{id=5; name="WinRAR"; process="winrar"; url="https://www.rarlab.com/rar/winrar-x64-701.exe"; args="/S"},
     @{id=6; name="WhatsApp"; process="WhatsApp"; url="https://get.microsoft.com/installer/download/9NKSQGP7F2NH"; args="/S"},
     @{id=7; name="Telegram"; process="Telegram"; url="https://td.telegram.org/tx64/tsetup-x64.6.2.4.exe"; args="/S"},
-    @{id=8; name="Microsoft Office 365"; process="office365"; url="https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=O365ProPlusRetail&platform=x64&language=en-us&version=O16GA"; args="/quiet /update user"},
+    @{id=8; name="Microsoft Office 365"; process="office365"; url="https://officecdn.microsoft.com/db/492350f6-3a01-4f97-b9c0-c7c6ddf67d60/media/bg-bg/O365ProPlusRetail.img"; args="/quiet /update user"},
     @{id=9; name="Microsoft Office Home 2024"; process="officehome2024"; url="https://officecdn.microsoft.com/db/492350f6-3a01-4f97-b9c0-c7c6ddf67d60/media/bg-bg/Home2024Retail.img"; args="/quiet /update user"}
 )
 
-# Fungsi install software
+# Fungsi download dengan progress sebenar
+function Download-WithRealProgress($url, $outfile) {
+    Write-Host "⬇️ Memuat turun $outfile..." -ForegroundColor Yellow
+    try {
+        $request = [System.Net.HttpWebRequest]::Create($url)
+        $response = $request.GetResponse()
+        $totalBytes = $response.ContentLength
+        $stream = $response.GetResponseStream()
+        $fileStream = [System.IO.File]::OpenWrite($outfile)
+
+        $buffer = New-Object byte[] 8192
+        $read = 0
+        $totalRead = 0
+        do {
+            $read = $stream.Read($buffer, 0, $buffer.Length)
+            $fileStream.Write($buffer, 0, $read)
+            $totalRead += $read
+            if ($totalBytes -gt 0) {
+                $percent = [math]::Round(($totalRead / $totalBytes) * 100)
+                Write-Progress -Activity "⬇️ Memuat turun $outfile" -Status "$percent%" -PercentComplete $percent
+            }
+        } while ($read -gt 0)
+
+        $fileStream.Close()
+        $stream.Close()
+        Write-Progress -Activity "⬇️ Memuat turun $outfile" -Completed
+        Write-Host "✅ Muat turun selesai: $outfile" -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Host "❌ Muat turun gagal: $_" -ForegroundColor Red
+        return $false
+    }
+}
+
+# Fungsi install software dengan progress tiruan
 function Install-App($app) {
     Write-Host "`n🔍 Memeriksa $($app.name)..." -ForegroundColor Cyan
     $installed = Get-Command $app.process -ErrorAction SilentlyContinue
@@ -29,23 +65,29 @@ function Install-App($app) {
     }
 
     $file = "$dl\$($app.name).exe"
-    Write-Host "⬇️ Muat turun $($app.name)..." -ForegroundColor Yellow
 
-    try {
-        Invoke-WebRequest -Uri $app.url -OutFile $file -UseBasicParsing
-        Write-Host "⚙️ Memasang $($app.name)..." -ForegroundColor Magenta
-        Start-Process $file -ArgumentList $app.args -Wait
-        Write-Host "✅ Selesai: $($app.name)" -ForegroundColor Green
+    if (-not (Download-WithRealProgress $app.url $file)) {
+        Write-Host "❌ Gagal muat turun $($app.name), langkau pemasangan." -ForegroundColor Red
+        return
     }
-    catch {
-        Write-Host "❌ Ralat semasa memasang: $($app.name)" -ForegroundColor Red
+
+    Write-Host "⚙️ Memasang $($app.name)..." -ForegroundColor Magenta
+    $progress = 0
+    $ps = Start-Process $file -ArgumentList $app.args -PassThru
+
+    while (-not $ps.HasExited) {
+        $progress += 5
+        if ($progress -gt 100) { $progress = 100 }
+        Write-Progress -Activity "⚙️ Memasang $($app.name)..." -Status "$progress%" -PercentComplete $progress
+        Start-Sleep -Milliseconds 500
     }
+    Write-Progress -Activity "⚙️ Memasang $($app.name)..." -Completed
+    Write-Host "✅ Selesai: $($app.name)" -ForegroundColor Green
 }
 
 # Fungsi shortcut Chrome Apps
 function Create-ChromeApps {
     Write-Host "`n🌐 Membuat shortcut Chrome Apps..." -ForegroundColor Cyan
-
     $desktop = [Environment]::GetFolderPath("Desktop")
     $ws = New-Object -ComObject WScript.Shell
     $chrome = "C:\Program Files\Google\Chrome\Application\chrome_proxy.exe"
@@ -63,7 +105,6 @@ function Create-ChromeApps {
         $sc.IconLocation = "$chrome,0"
         $sc.Save()
     }
-
     Write-Host "✅ Shortcut siap!" -ForegroundColor Green
 }
 
@@ -86,39 +127,28 @@ do {
     $choice = Read-Host "Masukkan pilihan"
 
     switch ($choice) {
-
         "1" {
             foreach ($app in $apps) { Install-App $app }
             Read-Host "`nTekan ENTER untuk kembali ke menu"
         }
-
         "2" {
             Write-Host "`n📦 Senarai Software:" -ForegroundColor Yellow
             foreach ($app in $apps) {
                 Write-Host "$($app.id). $($app.name)"
             }
-
             $pick = Read-Host "`nPilih nombor software"
             $selected = $apps | Where-Object { $_.id -eq $pick }
-
-            if ($selected) {
-                Install-App $selected
-            } else {
-                Write-Host "❌ Pilihan tidak sah!" -ForegroundColor Red
-            }
-
+            if ($selected) { Install-App $selected }
+            else { Write-Host "❌ Pilihan tidak sah!" -ForegroundColor Red }
             Read-Host "`nTekan ENTER untuk kembali ke menu"
         }
-
         "3" {
             Create-ChromeApps
             Read-Host "`nTekan ENTER untuk kembali ke menu"
         }
-
         "4" {
             Write-Host "`n👋 Keluar..." -ForegroundColor Cyan
         }
-
         default {
             Write-Host "❌ Pilihan tidak sah!" -ForegroundColor Red
         }
@@ -126,4 +156,5 @@ do {
 
 } until ($choice -eq "4")
 
+# Hapus folder installer sementara
 Remove-Item -Path $dl -Recurse -Force -ErrorAction SilentlyContinue
