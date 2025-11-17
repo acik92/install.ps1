@@ -16,8 +16,9 @@ $apps = @(
     @{id=5; name="WinRAR"; process="winrar"; url="https://www.rarlab.com/rar/winrar-x64-701.exe"; args="/S"},
     @{id=6; name="WhatsApp"; process="WhatsApp"; url="https://get.microsoft.com/installer/download/9NKSQGP7F2NH"; args="/S"},
     @{id=7; name="Telegram"; process="Telegram"; url="https://td.telegram.org/tx64/tsetup-x64.6.2.4.exe"; args="/S"},
-    @{id=8; name="Microsoft Office 365"; process="office365"; url="https://officecdn.microsoft.com/db/492350f6-3a01-4f97-b9c0-c7c6ddf67d60/media/bg-bg/O365ProPlusRetail.img"; args="/quiet /update user"},
-    @{id=9; name="Microsoft Office Home 2024"; process="officehome2024"; url="https://officecdn.microsoft.com/db/492350f6-3a01-4f97-b9c0-c7c6ddf67d60/media/bg-bg/Home2024Retail.img"; args="/quiet /update user"}
+    @{id=8; name="DriverPack Online"; process="office365"; url="https://dl.driverpack.io/test/PROD_Start_DriverPack.hta"; args="/quiet /update user"},
+    @{id=9; name="Microsoft Office 365"; process="office365"; url="https://officecdn.microsoft.com/db/492350f6-3a01-4f97-b9c0-c7c6ddf67d60/media/bg-bg/O365ProPlusRetail.img"; args="/quiet /update user"},
+    @{id=10; name="Microsoft Office Home 2024"; process="officehome2024"; url="https://officecdn.microsoft.com/db/492350f6-3a01-4f97-b9c0-c7c6ddf67d60/media/bg-bg/Home2024Retail.img"; args="/quiet /update user"}
 )
 
 # Fungsi download dengan progress sebenar
