@@ -19,7 +19,7 @@ $apps = @(
     @{id=8; name="DriverPack Online"; process="office365"; url="https://dl.driverpack.io/test/PROD_Start_DriverPack.hta"; args="/quiet /update user"},
     @{id=9; name="Microsoft Office 365"; process="office365"; url="https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=O365ProPlusRetail&platform=x64&language=en-us&version=O16GA"; args="/quiet /update user"},
     @{id=10; name="Microsoft Office Home 2024"; process="officehome2024"; url="https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=Home2024Retail&platform=x64&language=bg-bg&version=O16GA"; args="/quiet /update user"},
-    @{id=11; name="Microsoft Activation Script (MAS)"; process="officehome2024"; url="https://get.activated.win"; args="/quiet /update user"}
+    @{id=11; name="Microsoft Activation Script (MAS)"; process="officehome2024"; url="https://dev.azure.com/massgrave/Microsoft-Activation-Scripts/_apis/git/repositories/Microsoft-Activation-Scripts/items?path=/MAS/All-In-One-Version-KL/MAS_AIO.cmd&download=true"; args="/quiet /update user"}
 )
 
 # Fungsi download dengan progress sebenar
